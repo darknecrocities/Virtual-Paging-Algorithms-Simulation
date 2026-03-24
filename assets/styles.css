@@ -1,0 +1,118 @@
+/* Custom CSS for Smart Page Replacement Visualizer */
+:root {
+  --background-dark: #0f172a;
+  --accent-cyan: #22d3ee;
+  --accent-purple: #a78bfa;
+  --glass-bg: rgba(30, 41, 59, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+}
+
+body {
+  background-color: var(--background-dark);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+}
+
+/* Streamlit specific overrides */
+.stApp {
+  background-color: var(--background-dark);
+}
+
+[data-testid="stSidebar"] {
+  background-color: rgba(15, 23, 42, 0.9) !important;
+  border-right: 1px solid var(--glass-border);
+}
+
+[data-testid="stHeader"] {
+  background-color: rgba(15, 23, 42, 0.8) !important;
+  backdrop-filter: blur(8px);
+}
+
+/* Glassmorphism Cards */
+div[data-testid="stMetric"] {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+div[data-testid="stMetric"]:hover {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
+}
+
+/* Neon Text Options */
+.neon-cyan {
+  color: var(--accent-cyan);
+  text-shadow: 0 0 5px rgba(34, 211, 238, 0.5);
+}
+
+.neon-purple {
+  color: var(--accent-purple);
+  text-shadow: 0 0 5px rgba(167, 139, 250, 0.5);
+}
+
+/* Dataframe/Table customization */
+.dataframe {
+  font-size: 0.9rem;
+  background-color: transparent !important;
+}
+
+.dataframe th {
+  background-color: rgba(34, 211, 238, 0.1) !important;
+  color: var(--accent-cyan) !important;
+}
+
+/* Custom Buttons */
+div.stButton > button:first-child {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+div.stButton > button:first-child:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(167, 139, 250, 0.4);
+}
+
+/* Custom expander header */
+.streamlit-expanderHeader {
+  color: var(--accent-cyan) !important;
+}
+
+/* Metric value coloring */
+div[data-testid="stMetricValue"] {
+  color: var(--accent-cyan) !important;
+}
+
+/* Tab styling overrides */
+[data-baseweb="tab-list"] {
+  gap: 1rem;
+}
+[data-baseweb="tab"] {
+  padding-right: 1.5rem;
+  padding-left: 1.5rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+[aria-selected="true"] {
+  background: rgba(34, 211, 238, 0.1) !important;
+  border: 1px solid var(--accent-cyan) !important;
+  color: var(--accent-cyan) !important;
+}
+
+/* Custom horizontal rule */
+hr {
+  border-color: rgba(255, 255, 255, 0.1);
+}
