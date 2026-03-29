@@ -31,7 +31,7 @@ def generate_ai_insights(reference_string, results):
 
     try:
         response = client.models.generate_content(
-            model="gemini-3-flash-preview",
+            model="gemini-3.1-flash-preview",
             contents=prompt,
         )
         clean_json = response.text.strip()
