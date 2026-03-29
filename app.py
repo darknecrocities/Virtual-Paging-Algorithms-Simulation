@@ -58,27 +58,11 @@ def main():
     with st.sidebar:
         st.markdown("<h3 class='neon-purple'>⚙️ Configuration</h3>", unsafe_allow_html=True)
         
-        # Test Case Generators
-        st.markdown("<b>Data Generators</b>", unsafe_allow_html=True)
-        col1, col2, col3 = st.columns(3)
-        if col1.button("🎲 Random", help="Generate Random Input"):
-            st.session_state.ref_string = ", ".join(map(str, generate_random_string(20)))
-            st.rerun()
-        if col2.button("📊 Locality", help="Generate Locality-Based Input"):
-            st.session_state.ref_string = ", ".join(map(str, generate_locality_string(20)))
-            st.rerun()
-        if col3.button("💥 Worst", help="Generate Worst-case scenario for LRU/FIFO"):
-            st.session_state.ref_string = ", ".join(map(str, generate_worst_case_string(4, 20)))
-            st.rerun()
-            
-        uploaded_file = st.file_uploader("📂 Upload .txt file (comma separated)", type=["txt", "csv"])
-        if uploaded_file is not None:
-            content = uploaded_file.read().decode("utf-8")
-            st.session_state.ref_string = content.strip()
-            
         ref_input_str = st.text_area("Reference String (comma-separated)", value=st.session_state.ref_string, height=100)
         
-        num_frames = st.number_input("Number of Frames", min_value=1, max_value=10, value=3)
+        num_frames = st.number_input("Number of Frames", min_value=1, max_value=20, value=3)
+        num_pages = st.number_input("Number of Pages", min_value=1, max_value=100, value=10,
+                                    help="Total distinct pages in virtual memory (pages 0 to N-1)")
         
         algos = list(get_algorithm_map().keys())
         selected_algos = st.multiselect("Select Algorithms", algos, default=["FIFO", "LRU"])
@@ -88,6 +72,13 @@ def main():
         
     # Validation
     ref_string_arr = process_reference_string(ref_input_str)
+    
+    # Validate pages are within range (pages are 1-indexed: 1 to num_pages)
+    if ref_string_arr:
+        out_of_range = [p for p in ref_string_arr if p < 1 or p > num_pages]
+        if out_of_range:
+            st.error(f"⚠️ Page(s) {sorted(set(out_of_range))} are out of range. With {num_pages} pages, valid page numbers are 1 – {num_pages}.")
+            ref_string_arr = []
         
     tabs = st.tabs(["👁️ Visualization", "📊 Comparison Mode", "💡 AI Insights", "📚 OS Analysis"])
     
@@ -100,6 +91,7 @@ def main():
         st.session_state.sim_results = results
         st.session_state.sim_ref_string = ref_string_arr
         st.session_state.sim_frames = num_frames
+        st.session_state.sim_pages = num_pages
         
     if "sim_results" in st.session_state:
         results = st.session_state.sim_results
@@ -202,12 +194,59 @@ def main():
                     st.rerun() # Refresh button states at end
                         
             with vis_tabs[1]:
-                st.markdown("### Execution Log")
-                df = pd.DataFrame(data['step_details'])
-                st.dataframe(df, width='stretch')
-                
-                csv = df.to_csv(index=False).encode('utf-8')
-                st.download_button("📥 Download Action Log (.csv)", csv, f"{vis_algo}_log.csv", "text/csv")
+                st.markdown("### 📋 Frame State Table")
+
+                num_steps = len(data['step_details'])
+                num_f = st.session_state.sim_frames
+                total_refs = num_steps
+                total_faults = data['faults']
+                total_hits   = data['hits']
+
+                # Build notebook-style table: columns = steps, rows = Page, F0..Fn-1, PF, FR, SR
+                step_cols  = [str(i + 1) for i in range(num_steps)]
+                page_row   = {str(i + 1): str(data['step_details'][i]['Page']) for i in range(num_steps)}
+                frame_rows = {}
+                for f in range(num_f):
+                    row = {}
+                    for i in range(num_steps):
+                        cell = data['frames'][i][f]
+                        row[str(i + 1)] = str(cell) if cell != "-" else "–"
+                    frame_rows[f"F{f}"] = row
+                pf_row = {str(i + 1): ("✗" if data['step_details'][i]['Status'] == "Fault" else "") for i in range(num_steps)}
+
+                # FR and SR summary rows (show value only in last column, rest blank)
+                fr_row = {col: "" for col in step_cols}
+                sr_row = {col: "" for col in step_cols}
+                fr_row[step_cols[-1]] = f"{total_faults}/{total_refs}"
+                sr_row[step_cols[-1]] = f"{total_hits}/{total_refs}"
+
+                table_data = {"": []}
+                for col in step_cols:
+                    table_data[col] = []
+
+                rows_order = ["Page"] + [f"F{f}" for f in range(num_f)] + ["PF", "FR", "SR"]
+                all_rows   = {"Page": page_row, **frame_rows, "PF": pf_row, "FR": fr_row, "SR": sr_row}
+
+                for label in rows_order:
+                    row_dict = all_rows[label]
+                    table_data[""].append(label)
+                    for col in step_cols:
+                        table_data[col].append(row_dict.get(col, ""))
+
+                table_df = pd.DataFrame(table_data).set_index("")
+                st.dataframe(table_df, width='stretch')
+
+                # Summary metrics
+                m1, m2, m3, m4 = st.columns(4)
+                m1.metric("Page Faults",  total_faults)
+                m2.metric("Page Hits",    total_hits)
+                m3.metric("Fault Rate",   f"{total_faults}/{total_refs} = {data['fault_rate']*100:.1f}%")
+                m4.metric("Success Rate", f"{total_hits}/{total_refs} = {data['success_rate']*100:.1f}%")
+
+                # Also allow CSV download of original detail log
+                detail_df = pd.DataFrame(data['step_details'])
+                csv = detail_df.to_csv(index=False).encode('utf-8')
+                st.download_button("📥 Download Detail Log (.csv)", csv, f"{vis_algo}_log.csv", "text/csv")
                 
                 
         # --- TAB 2: COMPARISON MODE ---

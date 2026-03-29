@@ -33,16 +33,16 @@ def run_second_chance(reference_string, num_frames):
             is_fault = True
             if len(frames) < num_frames:
                 frames.append(page)
-                reference_bits.append(0) # Initially 0 when loaded
+                reference_bits.append(1)  # Set reference bit to 1 on load (standard Clock)
                 explanation = f"Page {page} caused a fault. Added to an empty frame."
             else:
                 # Replace logic
                 while True:
                     if reference_bits[pointer] == 0:
-                        # Replace
+                        # Replace this page (it had its chance already)
                         old_page = frames[pointer]
                         frames[pointer] = page
-                        reference_bits[pointer] = 0
+                        reference_bits[pointer] = 1  # New page gets reference bit 1
                         pointer = (pointer + 1) % num_frames
                         explanation = f"Page {page} caused a fault. Replaced {old_page} (reference bit was 0)."
                         break

@@ -48,8 +48,8 @@ def run_optimal(reference_string, num_frames):
                         farthest_use = next_use
                         page_to_replace = f_page
                 
-                if not page_to_replace:
-                    page_to_replace = frames[0] # Fallback
+                if page_to_replace is None:
+                    page_to_replace = frames[0]  # Fallback (all pages found in future)
                 
                 idx = frames.index(page_to_replace)
                 frames[idx] = page
