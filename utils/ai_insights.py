@@ -8,9 +8,9 @@ def generate_ai_insights(reference_string, results):
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key or api_key == "your_gemini_api_key_here":
         return "⚠️ Please configure a valid GEMINI_API_KEY in the .env file to enable AI insights."
-        
+
     client = genai.Client(api_key=api_key)
-    
+
     prompt = f"""
     Analyze the following page reference string and algorithm results:
 
@@ -31,7 +31,7 @@ def generate_ai_insights(reference_string, results):
 
     try:
         response = client.models.generate_content(
-            model="gemini-3.1-flash-preview",
+            model="gemini-3-flash-preview",
             contents=prompt,
         )
         clean_json = response.text.strip()
