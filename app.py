@@ -73,13 +73,8 @@ def main():
     # Validation
     ref_string_arr = process_reference_string(ref_input_str)
     
-    # Validate pages are within range (pages are 1-indexed: 1 to num_pages)
-    if ref_string_arr:
-        out_of_range = [p for p in ref_string_arr if p < 1 or p > num_pages]
-        if out_of_range:
-            st.error(f"⚠️ Page(s) {sorted(set(out_of_range))} are out of range. With {num_pages} pages, valid page numbers are 1 – {num_pages}.")
-            ref_string_arr = []
         
+
     tabs = st.tabs(["👁️ Visualization", "📊 Comparison Mode", "💡 AI Insights", "📚 OS Analysis"])
     
     # Store results in session state to avoid re-calculating unless required
